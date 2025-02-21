@@ -90,10 +90,86 @@ fxn_birth <- function(events) {
       stop("Neither BDAT or BIRTH column found in dataseet")
     }
       return(events)
+}
+
+fxn_breed <- function(events) {
+  if("CBRD" %in% names(events)){
+    events <- events
+  } else if ("BREED" %in% names(events)) {
+    events <- events |> 
+      rename(CBRD = BREED)
+  }  else{
+    stop("Neither CBRD or BREED column found in dataseet")
   }
+  return(events)
+}
+
+fxn_fresh <- function(events) {
+  if("FDAT" %in% names(events)){
+    events <- events
+  } else if ("FRSH" %in% names(events)) {
+    events <- events |> 
+      rename(FDAT = FRSH)
+  }  else{
+    stop("Neither CBRD or BREED column found in dataseet")
+  }
+  return(events)
+}
+
+fxn_dry <- function(events) {
+  if("DDAT" %in% names(events)){
+    events <- events
+  } else if ("DRYDT" %in% names(events)) {
+    events <- events |> 
+      rename(DDAT = DRYDT)
+  }  else{
+    stop("Neither DDAT or DRYDT column found in dataseet")
+  }
+  return(events)
+}
+
+fxn_preg <- function(events) {
+  if("PODAT" %in% names(events)){
+    events <- events
+  } else if ("PGCK" %in% names(events)) {
+    events <- events |> 
+      rename(PODAT = PGCK)
+  }  else{
+    stop("Neither PODAT or PGCK column found in dataseet")
+  }
+  return(events)
+}
+
+fxn_dim <- function(events) {
+  if("DIM" %in% names(events)){
+    events <- events
+  } else if ("DNM" %in% names(events)) {
+    events <- events |> 
+      rename(DIM = DNM)
+  }  else{
+    stop("Neither DIM or DNM column found in dataseet")
+  }
+  return(events)
+}
+
+fxn_heat <- function(events) {
+  if("HDAT" %in% names(events)){
+    events <- events
+  } else {
+    events <- events |> 
+      mutate(HDAT = NA)
+  }
+  return(events)
+}
 
 events2 <- events|>
   fxn_birth() |> 
+  fxn_breed() |> 
+  fxn_fresh() |> 
+  fxn_dry() |> 
+  fxn_preg() |> 
+  fxn_dim() |> 
+  fxn_heat() |> 
   lazy_dt() |> 
   select(-starts_with('...')) |> #get rid of extra columns created by odd parsing in the original csv file
   ##create unique cow id--------------------------------------- 
