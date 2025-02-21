@@ -77,7 +77,23 @@ for (i in seq_along(list_files)){
 
 
 #initial cleanup ---------------------------
+
+# deal with BIRTH vs BDAT issue
+
+fxn_birth <- function(events) {
+  if("BDAT" %in% names(events)){
+    events <- events
+  } else if ("BIRTH" %in% names(events)) {
+    events <- events |> 
+      rename(BDAT = BIRTH)
+  }  else{
+      stop("Neither BDAT or BIRTH column found in dataseet")
+    }
+      return(events)
+  }
+
 events2 <- events|>
+  fxn_birth() |> 
   lazy_dt() |> 
   select(-starts_with('...')) |> #get rid of extra columns created by odd parsing in the original csv file
   ##create unique cow id--------------------------------------- 
