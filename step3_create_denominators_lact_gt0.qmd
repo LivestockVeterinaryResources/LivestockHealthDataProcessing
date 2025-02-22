@@ -71,13 +71,14 @@ deno <- animal_lactations |>
   mutate(time_period = time_period_text) |> 
   # removes heifers
   filter(lact_number>0) |>  
-  filter(date_left <= date_end | is.na(date_left) 
-         & date_fresh <= date_end) |> 
+  # keeps cows with not culled or cows fresh before end
+  filter(is.na(date_left) | date_fresh <= date_end) |> 
+  filter(is.na(date_archive) | date_archive >=  date_start) |> 
   # filters cows fresh before start date
-  filter(date_fresh <= date_start & date_left >= date_start |
+  filter(date_fresh <= date_start & date_archive >= date_start |
            date_fresh <= date_start & is.na(date_left) |
   # filters cows fresh after start date
-    date_fresh >= date_start & date_left <= date_end |
+    date_fresh >= date_start & date_archive <= date_end |
            date_fresh >= date_start & is.na(date_left)
          )
 
@@ -141,6 +142,10 @@ deno <- animal_lactations |>
          id_animal_lact, 
          lact_number, lact_group, lact_group_basic,
          date_fresh, date_archive, date_archive_max) |> 
+  # get cull date
+  group_by(id_animal) |> 
+  mutate(date_left = max(date_archive_max)) |> 
+  ungroup() |> 
   # create 5 lact groupp
   mutate (lact_group_5 = case_when(
       (lact_number == 0) ~ 'Heifer', 
@@ -155,14 +160,15 @@ deno <- animal_lactations |>
   mutate(time_period = time_period_text) |> 
   # removes heifers
   filter(lact_number>0) |>  
-  filter(date_archive <= date_end | is.na(date_archive) 
-         & date_fresh <= date_end) |> 
+  # keeps cows with not culled or cows fresh before end
+  filter(is.na(date_left) | date_fresh <= date_end) |> 
+  filter(is.na(date_archive) | date_archive >=  date_start) |> 
   # filters cows fresh before start date
   filter(date_fresh <= date_start & date_archive >= date_start |
-           date_fresh <= date_start & is.na(date_archive) |
+           date_fresh <= date_start & is.na(date_left) |
   # filters cows fresh after start date
-    date_fresh >= date_start & date_archive <= date_end|
-           date_fresh >= date_start & is.na(date_archive)
+    date_fresh >= date_start & date_archive <= date_end |
+           date_fresh >= date_start & is.na(date_left)
          )
 }
 
@@ -222,17 +228,17 @@ herd_deno <- fxn_calc_deno(denominators)
 
 # can do multiple years or time periods by combining the above
 
-denominators_2023 <- fxn_create_deno(label = "2023",
+denominators_yr1 <- fxn_create_deno(label = "2023",
                         date_start = "2023-01-01",
                         date_end = "2023-12-31") |> 
   fxn_calc_deno()
 
-denominators_2024 <- fxn_create_deno(label = "2022",
-                        date_start = "2022-01-01",
-                        date_end = "2022-12-31") |> 
+denominators_yr2 <- fxn_create_deno(label = "2024",
+                        date_start = "2024-01-01",
+                        date_end = "2024-12-31") |> 
   fxn_calc_deno()
 
-deno_2yrs <- bind_rows(denominators_2024, denominators_2023)
+deno_2yrs <- bind_rows(denominators_yr1, denominators_yr2)
 
 ggplot(data = deno_2yrs, aes(x = `Lactation Group`, y = count_animals,
                              fill = `Lactation Group`))+
